@@ -1,0 +1,26 @@
+#!/bin/bash -l
+
+#SBATCH --job-name=cnn                 #job name
+#SBATCH --time=00:45:00                #max execution time
+#SBATCH --nodes=32                     #number of nodes
+#SBATCH --ntasks-per-core=1            #number of tasks per core
+#SBATCH --ntasks-per-node=1            #number of tasks per node
+#SBATCH --cpus-per-task=12             #number of cpus per tasks
+#SBATCH --hint=nomultithread           #don't use extra threads with in-core multi-threading
+#SBATCH --constraint=gpu               #only gpu nodes
+#SBATCH --account=c24                  #cscs account
+#SBATCH --output=o.out                 #output file name
+#SBATCH --error=e.err                  #error file name
+
+#load necessary modules for Piz Daint
+module load daint-gpu
+module load PyTorch
+
+#set up correct communication backend
+export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
+export NCCL_DEBUG=INFO
+export NCCL_IB_HCA=ipogif0
+export NCCL_IB_CUDA_SUPPORT=1
+
+#run the program using python and by passing the arguments
+srun python main.py -bs 50 -s 2 -e 20
